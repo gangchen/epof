@@ -221,25 +221,51 @@ vector<int> Graph::getNeighbors(Clique* pc)
 void Graph::generateCliques(){
 	//for each key node
 	for(size_t i=0;i<m_KeyArray.size();i++){
-	  cout << i << endl;
+	  	cout << i << endl;
 		int key = m_KeyArray[i];
 		if(!exists(key,m_CliqueArray)){	//if this key node hasn't occur
 			Clique* pc=new Clique(m_CliqueArray.size());
 			pc->m_CliqueNodes.push_back(key);
 			vector<int> neighbors = getNeighbors(pc);
 			//for all the neighbors
+
+			vector<bool> flag;
+			for(int i=0; i<m_nNumNode; i++){
+				flag.push_back(false);
+			}
+
 			while(neighbors.size()>0){
+
+				cout << neighbors.size();
+				cout << endl;
 				int node = neighbors[0];
+				/*if(flag[node] == true){
+					erase(neighbors, node);
+					continue;
+				}else{
+					flag[node] = true;
+				}*/
 				pc->m_CliqueNodes.push_back(node);
+				
+				//Vector structure is very bad for del operation
+				// node is the first element of neighbors
+				// erasing the first element of a vector needs
+				// reallocate all remaining elements of the
+				// vector
+				// by Gang Chen
+				cout << calFitness(node, pc->m_CliqueNodes) << endl;
 				if(calFitness(node,pc->m_CliqueNodes)<0){
 					erase(pc->m_CliqueNodes,node);
 					erase(neighbors,node);
+					cin.get();
 				}
 				else{	//check the resulting graph and remove some unproper nodes
-					//cout<<"\tnew node\t"<<m_NodeArray[node]->m_szName<<endl;
+					//cout<< node << "\t" <<m_NodeArray[node]->m_szName<<endl;
 					for(size_t k=0;k<pc->m_CliqueNodes.size();k++)
-						if(calFitness(pc->m_CliqueNodes[k],pc->m_CliqueNodes)<0)
-							erase(pc->m_CliqueNodes,pc->m_CliqueNodes[k]);						
+						if(calFitness(pc->m_CliqueNodes[k],pc->m_CliqueNodes)<0){
+							//cout << pc->m_CliqueNodes[k] << endl;
+							erase(pc->m_CliqueNodes,pc->m_CliqueNodes[k]);
+						}						
 					//update neighbors
 					neighbors = getNeighbors(pc);
 				}
@@ -274,7 +300,8 @@ double Graph::calModularity(vector<int> graph)
 			pArc=pArc->m_pNextArc;
 		}
 	}
-	double mod = (double)(inWeight/(inWeight+outWeight));
+	inWeight = inWeight/2;
+	double mod = ((inWeight)/(inWeight+outWeight));
 	return mod;
 }
 bool Graph::searchNode(vector<int> graph, int node)
