@@ -1,6 +1,6 @@
-cluster: *.cpp *.h maze
+cluster: *.cpp *.h mace
 	g++ *.cpp *.h -o cluster
-maze: clique/*.h clique/*.c
+mace: clique/*.h clique/*.c
 	make -C clique
 clean:
 	rm cluster clique/mace

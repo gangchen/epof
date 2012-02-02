@@ -132,6 +132,47 @@ void Graph::LoadGraphFromRawGraph(GraphLoader&	rawGraph)	//load all the needed i
 	m_nNumNode=m_NodeArray.size();
 }
 
+vector<string> Graph::strsplit(string str, string del){
+  unsigned end=0;
+  vector<string> fields;
+  while(1){
+    end = str.find(del);
+    if(end > str.size()){
+      fields.push_back(str);
+      break;
+    }
+    fields.push_back(str.substr(0, end));
+    str = str.substr(end+1, str.size());
+  }
+  return fields;
+}
+
+
+int Graph::loadKeyCliques(const char* szfileName){
+  m_KeyCliqueArray.clear();
+  ifstream InFile(szfileName);
+  if(!InFile){
+    cout << "Cannot open the key clique file" << endl;
+    return -1;
+  }
+  int cliqueID = 0;
+  string line;
+  while(getline(InFile, line)){
+    Clique *cq = new Clique(cliqueID++);
+    vector<string> proteins = strsplit(line, " ");
+    for(vector<string>::iterator it = proteins.begin();
+	it != proteins.end();
+	it++){
+      char* proteinName = new char[strlen((*it).c_str())+1];
+      strcpy(proteinName, (*it).c_str());
+      cq->addNode(locateNode(proteinName));
+    }
+    m_KeyCliqueArray.push_back(cq);
+  }
+  InFile.close();
+  return m_KeyCliqueArray.size();
+}
+
 int Graph::loadKeys(const char* szfileName)
 {
 	m_KeyArray.clear();
@@ -150,6 +191,7 @@ int Graph::loadKeys(const char* szfileName)
 			break;
 		InFile>>m_szName;
 		if(strlen(m_szName)>0){
+		  cout << m_szName << endl;
 			index = locateNode(m_szName);
 			if(index<0){
 				cout<<"Error!! Can't load node ' "<<m_szName<<" '"<<endl;
@@ -200,6 +242,7 @@ vector<int> Graph::getNeighbors(Clique* pc)
 {
 	vector<int> ret;
 	int flag;
+
 	for(int i=0;i<pc->m_CliqueNodes.size();i++){
 		vector<int> temp = getNeighbors(pc->m_CliqueNodes[i]);
 		for(size_t k=0;k<temp.size();k++){	//add non-duplicated nodes
@@ -215,66 +258,97 @@ vector<int> Graph::getNeighbors(Clique* pc)
 			}
 		}
 	}
+
 	return ret;
+}
+
+int Graph::distanceNode2Node(Node* sNode, Node* dNode){
+  vector<bool> visited;
+  vector<int> depth;
+  for(int i = 0; i < m_nNumNode; i++){
+    visited.push_back(false); 
+    depth.push_back(0);
+  }
+  queue<Node*> q;
+  q.push(sNode);
+  Node* curNode;
+  while(q.size() != 0){
+    curNode = q.front();
+    q.pop();
+    vector<int> neighbors = getNeighbors(curNode->getID());
+    for(vector<int>::iterator it = neighbors.begin();
+	it != neighbors.end();
+	it++){
+      if(visited[*it]) continue;
+      depth[*it] = depth[curNode->getID()]+1;
+      if(dNode->getID() == *it){
+	return depth[*it];
+      }
+      q.push(m_NodeArray[*it]);
+    }
+  }
+  return 100000;
+}
+
+bool Graph::within(int node, Clique* cq, int dist=2){
+  int minDist = 0;
+  for(vector<int>::iterator cqIt = (*cq).m_CliqueNodes.begin();
+      cqIt != (*cq).m_CliqueNodes.end();
+      cqIt++){
+    Node* sNode = m_NodeArray[node];
+    Node* dNode = m_NodeArray[*cqIt];
+    if(distanceNode2Node(sNode, dNode) > dist){
+      return false;
+    }
+  }
+  return true;
 }
 
 void Graph::generateCliques(){
 	//for each key node
-	for(size_t i=0;i<m_KeyArray.size();i++){
-	  	cout << i << endl;
-		int key = m_KeyArray[i];
-		if(!exists(key,m_CliqueArray)){	//if this key node hasn't occur
-			Clique* pc=new Clique(m_CliqueArray.size());
-			pc->m_CliqueNodes.push_back(key);
-			vector<int> neighbors = getNeighbors(pc);
-			//for all the neighbors
+  //m_KeyArrayÒª±ä³Ém_KeyCliqueArray
+  for(vector<Clique*>::iterator itClique = m_KeyCliqueArray.begin();
+      itClique != m_KeyCliqueArray.end();
+      itClique++){
+    cout << (*itClique)->getID() << endl;
+    Clique* keyClique = *itClique;
 
-			vector<bool> flag;
-			for(int i=0; i<m_nNumNode; i++){
-				flag.push_back(false);
-			}
-
-			while(neighbors.size()>0){
-
-				cout << neighbors.size();
-				cout << endl;
-				int node = neighbors[0];
-				/*if(flag[node] == true){
-					erase(neighbors, node);
-					continue;
-				}else{
-					flag[node] = true;
-				}*/
-				pc->m_CliqueNodes.push_back(node);
+    Clique* pc=new Clique(m_CliqueArray.size());
+    for(vector<int>::iterator it = (*keyClique).m_CliqueNodes.begin();
+	it != (*keyClique).m_CliqueNodes.end();
+	it++){
+      pc->m_CliqueNodes.push_back(*it);
+    }
+    vector<int> neighbors = getNeighbors(pc);
+    while(neighbors.size()>0){
+      int node = neighbors[0];
+      if(!within(node, pc, 2)){
+	erase(neighbors, node);
+	continue;
+      }
+      pc->m_CliqueNodes.push_back(node);
 				
-				//Vector structure is very bad for del operation
-				// node is the first element of neighbors
-				// erasing the first element of a vector needs
-				// reallocate all remaining elements of the
-				// vector
-				// by Gang Chen
-				cout << calFitness(node, pc->m_CliqueNodes) << endl;
-				if(calFitness(node,pc->m_CliqueNodes)<0){
-					erase(pc->m_CliqueNodes,node);
-					erase(neighbors,node);
-					cin.get();
-				}
-				else{	//check the resulting graph and remove some unproper nodes
-					//cout<< node << "\t" <<m_NodeArray[node]->m_szName<<endl;
-					for(size_t k=0;k<pc->m_CliqueNodes.size();k++)
-						if(calFitness(pc->m_CliqueNodes[k],pc->m_CliqueNodes)<0){
-							//cout << pc->m_CliqueNodes[k] << endl;
-							erase(pc->m_CliqueNodes,pc->m_CliqueNodes[k]);
-						}						
-					//update neighbors
-					neighbors = getNeighbors(pc);
-				}
-			}
-			pc->m_iNumNodes = pc->m_CliqueNodes.size();
-			m_CliqueArray.push_back(pc);
-		}//if
-	}//for
+      //Vector structure is very bad for del operation
+      // node is the first element of neighbors
+      // erasing the first element of a vector needs
+      // reallocate all remaining elements of the
+      // vector
+      // by Gang Chen
+      //cout << calFitness(node, pc->m_CliqueNodes) << endl;
+      //cout << node << endl;
+      if(calFitness(node,pc->m_CliqueNodes)<0){
+	erase(pc->m_CliqueNodes,node);
+	erase(neighbors,node);
+      }else{
+	neighbors = getNeighbors(pc);
+      }
+    }//while
+    pc->m_iNumNodes = pc->m_CliqueNodes.size();
+    m_CliqueArray.push_back(pc);
+  }//for
 }
+
+
 double Graph::calFitness(int node, vector<int> graph)	//node is included in graph
 {
 	vector<int> temp;
@@ -286,6 +360,7 @@ double Graph::calFitness(int node, vector<int> graph)	//node is included in grap
 	f2 = calModularity(temp);
 	return (f1-f2);
 }
+
 double Graph::calModularity(vector<int> graph)
 {
 	double inWeight=0.0,outWeight=0.0;
@@ -300,7 +375,7 @@ double Graph::calModularity(vector<int> graph)
 			pArc=pArc->m_pNextArc;
 		}
 	}
-	inWeight = inWeight/2;
+	//inWeight = inWeight/2;
 	double mod = ((inWeight)/(inWeight+outWeight));
 	return mod;
 }

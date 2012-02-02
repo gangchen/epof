@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
 	}
 	//load graph...
 	Graph graph(netFile);
-	if(graph.loadKeys(keyFile)<0)
+	if(graph.loadKeyCliques(keyFile)<0)
 		return -1;
 	//generate maximal cliques...
 	graph.generateCliques();

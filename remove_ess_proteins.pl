@@ -8,7 +8,7 @@ while(my $line = <$essProteinFile>){
 }
 close($essProteinFile);
 
-open(my $networkFile, "SC_net_unweight.txt") or die $!;
+open(my $networkFile, "SC_net_noweight.txt") or die $!;
 while(my $line = <$networkFile>){
     chomp($line);
     my ($proteinA, $proteinB, $weight) = split "\t", $line;

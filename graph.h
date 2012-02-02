@@ -42,13 +42,19 @@ public:
 class Node
 {
 public:
-	int		m_iNode;		//the ID of the node
+	int	m_iNode;		//the ID of the node
 	char	m_szName[16];	//the name of the node
-	int		m_iDegree;		//the degree of the node
+	int	m_iDegree;		//the degree of the node
 	Arc*	m_pFirst;		//the point of the first arc associated with this node
 	vector<int> subComplexes;	//array of complexes including this node
 
 public:
+	int getID(){
+	  return m_iNode;
+	}
+	Arc* getFirstArc(){
+	  return m_pFirst;
+	}
 	Node(int iNode,char szName[16])
 	{
 		strcpy(m_szName,szName);
@@ -67,11 +73,17 @@ public:
 class Clique	//the structure of the clique
 {
 public:
-	vector<int>			m_CliqueNodes;		//the vector of the nodes in this clique
-	int					m_iNumNodes;		//the number of nodes
-	bool				m_bSubordinate;		//the flag showing if this clique is subordinate
-	int					m_iCliqueID;		//the ID of this clique
+	vector<int>	m_CliqueNodes;		//the vector of the nodes in this clique
+	int	m_iNumNodes;		//the number of nodes
+	bool	m_bSubordinate;		//the flag showing if this clique is subordinate
+	int	m_iCliqueID;		//the ID of this clique
 public:
+	int getID(){
+	  return m_iCliqueID;
+	}
+	int size(){
+	  return m_iNumNodes;
+	}
 	Clique(int ID)
 	{
 		m_iNumNodes=0;
@@ -81,18 +93,22 @@ public:
 	{
 		sort(m_CliqueNodes.begin(),m_CliqueNodes.end());
 	}
+	void addNode(int node){
+	  m_CliqueNodes.push_back(node);
+	  m_iNumNodes++;
+	}
 };
 class Complex		// the structure of the Complex
 {
 public:
-	vector<int>			m_ComplexNodes;		//the vector of all the nodes in the complex
-	vector<Arc*>		m_Arcs;				//the vector of the arc pointers
-	int					m_iComplexNo;		//the ID of the complex
-	int					m_iNumNodes;		//the number of the nodes
-	int                 m_iInDegree;		//the indegree of the complex
-	int                 m_iTotalDegree;		//the total degree of the complex
-	bool				m_bMergeable;		//the flag showing if the complex is mergeable
-	bool                m_bModule;			//the flag showing if this complex can be defined as a module
+	vector<int>	m_ComplexNodes;		//the vector of all the nodes in the complex
+	vector<Arc*>	m_Arcs;				//the vector of the arc pointers
+	int	m_iComplexNo;		//the ID of the complex
+	int	m_iNumNodes;		//the number of the nodes
+	int     m_iInDegree;		//the indegree of the complex
+	int     m_iTotalDegree;		//the total degree of the complex
+	bool	m_bMergeable;		//the flag showing if the complex is mergeable
+	bool    m_bModule;			//the flag showing if this complex can be defined as a module
 public:
 	Complex(int iComplexNo)
 	{	
@@ -112,7 +128,8 @@ public:
 	string					m_strFileName;		//the name of the output file		
 	char					m_eagleOut[60];		//the name of eagel output file
 	vector<Node*>			m_NodeArray;		//the vector of the node pointers in this graph	
-	vector<Clique*>			m_CliqueArray;		//the vector of the clique pointers	
+	vector<Clique*>			m_CliqueArray;		//the vector of the clique pointers
+	vector<Clique*> m_KeyCliqueArray;
 	vector<Complex*>		m_ComplexArray;		//the vector of the complex pointers
 
 	int						m_nNumNode;			//the number of Nodes	
@@ -137,6 +154,7 @@ public:
 	Graph(const char* szFileName);
 	void LoadGraphFromRawGraph(GraphLoader&	rawGraph);
 	int loadKeys(const char* szfileName);
+	int loadKeyCliques(const char* szfileName);
 	int locateNode(char m_szName[16]);
 	//fuctions to generate cliques
 	void generateCliques();
@@ -171,6 +189,13 @@ public:
 	//functions to output informations
 	void dumpNodeInfo(const char* szFileName);	//dump the node information
 	void dumpCompleteComplexInfo(vector<Complex *> complexes,char fileName[]);
+
+ private:
+	bool byFitness(int, int);
+	vector<string> strsplit(string str, string del);
+	bool within(int, Clique*, int);
+	int distanceNode2Node(Node*, Node*);
+	
 };
 //print out of memory error
 void OutMemoryError(const string message);
