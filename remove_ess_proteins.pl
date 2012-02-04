@@ -12,8 +12,8 @@ open(my $networkFile, "SC_net_noweight.txt") or die $!;
 while(my $line = <$networkFile>){
     chomp($line);
     my ($proteinA, $proteinB, $weight) = split "\t", $line;
-    if(defined($essProteins{$proteinA}) and 
-       defined($essProteins{$proteinB})){
+    if(!defined($essProteins{$proteinA}) and 
+       !defined($essProteins{$proteinB})){
 	print $line, "\n";
     }
 }

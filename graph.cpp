@@ -345,6 +345,27 @@ void Graph::generateCliques(){
     }//while
     pc->m_iNumNodes = pc->m_CliqueNodes.size();
     m_CliqueArray.push_back(pc);
+    
+
+    for(vector<Clique*>::iterator itNext = itClique + 1;
+	itNext != m_KeyCliqueArray.end();){
+      bool flag = true;
+      for(vector<int>::iterator itNode = (*(*itNext)).m_CliqueNodes.begin();
+	  itNode != (*(*itNext)).m_CliqueNodes.end();
+	  itNode++){
+	if(!searchInClique(pc, *itNode)){
+	  flag = false;
+	  break;
+	}
+      }
+
+      if(flag){
+	m_KeyCliqueArray.erase(itNext);
+      }else{
+	itNext++;
+      }
+    }
+
   }//for
 }
 
