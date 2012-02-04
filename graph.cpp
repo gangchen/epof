@@ -191,13 +191,13 @@ int Graph::loadKeys(const char* szfileName)
 			break;
 		InFile>>m_szName;
 		if(strlen(m_szName)>0){
-		  cout << m_szName << endl;
+		  //cout << m_szName << endl;
 			index = locateNode(m_szName);
 			if(index<0){
 				cout<<"Error!! Can't load node ' "<<m_szName<<" '"<<endl;
 				return -1;
 			}
-			m_KeyArray.push_back(index);
+			m_KeyArray.insert(index);
 		}
 		InFile.ignore(100,'\n');
 	}
@@ -305,40 +305,58 @@ bool Graph::within(int node, Clique* cq, int dist=2){
 }
 
 void Graph::generateCliques(){
-	//for each key node
-  //m_KeyArray要变成m_KeyCliqueArray
+
   for(vector<Clique*>::iterator itClique = m_KeyCliqueArray.begin();
       itClique != m_KeyCliqueArray.end();
       itClique++){
-    cout << (*itClique)->getID() << endl;
-    Clique* keyClique = *itClique;
 
+    cout << (*itClique)->getID() << endl;//for progress monitor
+
+    Clique* keyClique = *itClique;
     Clique* pc=new Clique(m_CliqueArray.size());
-    for(vector<int>::iterator it = (*keyClique).m_CliqueNodes.begin();
-	it != (*keyClique).m_CliqueNodes.end();
-	it++){
-      pc->m_CliqueNodes.push_back(*it);
-    }
+    pc->m_CliqueNodes = (*keyClique).m_CliqueNodes;
+
     vector<int> neighbors = getNeighbors(pc);
     while(neighbors.size()>0){
-      int node = neighbors[0];
+      //find the node with max fitness
+      double maxFitness = -1, maxKeyFitness = -1;
+      int keyNode = -1, node = -1;
+      for(vector<int>::iterator itNeighbor = neighbors.begin();
+	  itNeighbor != neighbors.end();
+	  itNeighbor++){
+	pc->m_CliqueNodes.push_back(*itNeighbor);
+	double curFitness = calFitness(*itNeighbor, pc->m_CliqueNodes);
+	erase(pc->m_CliqueNodes, *itNeighbor);
+	if(curFitness > maxFitness){
+	  node = *itNeighbor;
+	  maxFitness = curFitness;
+	  if(m_KeyArray.find(node) != m_KeyArray.end()){
+	    keyNode = node;
+	    maxKeyFitness = maxFitness;
+	  }
+	}
+      }
+
+      if(maxFitness < 0 ){
+	break;
+      }
+
+      //key protein first
+      if(keyNode != -1 && maxKeyFitness > 0) node = keyNode;
+      
+      // ignore node that far away
       if(!within(node, pc, 2)){
 	erase(neighbors, node);
 	continue;
       }
+
       pc->m_CliqueNodes.push_back(node);
 				
-      //Vector structure is very bad for del operation
-      // node is the first element of neighbors
-      // erasing the first element of a vector needs
-      // reallocate all remaining elements of the
-      // vector
-      // by Gang Chen
-      //cout << calFitness(node, pc->m_CliqueNodes) << endl;
-      //cout << node << endl;
       if(calFitness(node,pc->m_CliqueNodes)<0){
 	erase(pc->m_CliqueNodes,node);
 	erase(neighbors,node);
+	cout << "ERROR" << endl;
+	cin.get();
       }else{
 	neighbors = getNeighbors(pc);
       }
@@ -385,27 +403,27 @@ double Graph::calFitness(int node, vector<int> graph)	//node is included in grap
 double Graph::calModularity(vector<int> graph)
 {
 	double inWeight=0.0,outWeight=0.0;
-	for(size_t i=0;i<graph.size();++i){
-		Node* pNode=m_NodeArray[graph[i]];
+	sort(graph.begin(), graph.end());// for faster search
+	//for(size_t i=0;i<graph.size();++i){
+	for(vector<int>::iterator it = graph.begin();
+	    it != graph.end();
+	    it++){
+		Node* pNode=m_NodeArray[*it];
 		Arc* pArc=pNode->m_pFirst;
-		while(pArc!=NULL){//for all the adjacent nodes  入度为两倍?
-			if(searchNode(graph,pArc->m_iNodeTo))
-				inWeight += pArc->m_fWeight;
-			else
-				outWeight += pArc->m_fWeight;
-			pArc=pArc->m_pNextArc;
+		while(pArc!=NULL){//for all the adjacent nodes
+		  if(binary_search(graph.begin(), graph.end(), pArc->m_iNodeTo))
+			inWeight += pArc->m_fWeight;
+		  else
+			outWeight += pArc->m_fWeight;
+		  pArc=pArc->m_pNextArc;
 		}
 	}
-	//inWeight = inWeight/2;
 	double mod = ((inWeight)/(inWeight+outWeight));
 	return mod;
 }
 bool Graph::searchNode(vector<int> graph, int node)
 {
-	for(size_t i=0;i<graph.size();++i)
-		if(node==graph[i])
-			return true;
-	return false;
+  return binary_search(graph.begin(), graph.end(), node);
 }
 
 bool Graph::exists(int index, vector<Clique*> cliques)

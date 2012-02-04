@@ -1,5 +1,5 @@
 cluster: *.cpp *.h mace
-	g++ *.cpp *.h -o cluster -pg
+	g++ *.cpp *.h -o cluster
 mace: clique/*.h clique/*.c
 	make -C clique
 clean:

@@ -14,6 +14,7 @@
 #include <ctime>
 #include <algorithm>
 #include <cstring>
+#include <set>
 using namespace std;
 
 class Complex;
@@ -141,7 +142,8 @@ public:
 	time_t					m_endT;
 
 	int						m_nCliThr;			//the clique threshold
-	vector<int>				m_KeyArray;			//the key proteins
+	//vector<int>				m_KeyArray;			//the key proteins
+	set<int>  m_KeyArray;
 	int						m_nKeyNum;			//the number of keys
 public:
 	~Graph();
