@@ -340,9 +340,13 @@ void Graph::generateCliques(){
       if(maxFitness < 0 ){
 	break;
       }
-
+      
       //key protein first
-      if(keyNode != -1 && maxKeyFitness > 0) node = keyNode;
+      if(keyNode != -1 && maxKeyFitness > 0){
+	node = keyNode;
+      }else if(maxFitness < 0.01){
+	break;
+      }
       
       // ignore node that far away
       if(!within(node, pc, 2)){
