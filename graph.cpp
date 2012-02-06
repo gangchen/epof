@@ -344,7 +344,7 @@ void Graph::generateCliques(){
       //key protein first
       if(keyNode != -1 && maxKeyFitness > 0){
 	node = keyNode;
-      }else if(maxFitness < 0.01){
+      }else if(maxFitness < 0.005){
 	break;
       }
       
