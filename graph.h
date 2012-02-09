@@ -98,6 +98,15 @@ public:
 	  m_CliqueNodes.push_back(node);
 	  m_iNumNodes++;
 	}
+
+	void removeNode(vector<int>::iterator node){
+	  m_CliqueNodes.erase(node);
+	  m_iNumNodes--;
+	}
+	bool operator <(Clique cq) const{
+	  return m_CliqueNodes.size() > cq.m_CliqueNodes.size();
+	}
+
 };
 class Complex		// the structure of the Complex
 {
@@ -191,9 +200,12 @@ public:
 	//functions to output informations
 	void dumpNodeInfo(const char* szFileName);	//dump the node information
 	void dumpCompleteComplexInfo(vector<Complex *> complexes,char fileName[]);
+	void keyFilterByModularity(double);
+	void sortKeyBySize();
 
  private:
 	bool byFitness(int, int);
+	bool bySize(const Clique* &, const Clique* &);
 	vector<string> strsplit(string str, string del);
 	bool within(int, Clique*, int);
 	int distanceNode2Node(Node*, Node*);

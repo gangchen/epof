@@ -306,6 +306,7 @@ bool Graph::within(int node, Clique* cq, int dist=2){
 
 void Graph::generateCliques(){
 
+  cout << "OK" << endl;
   for(vector<Clique*>::iterator itClique = m_KeyCliqueArray.begin();
       itClique != m_KeyCliqueArray.end();
       itClique++){
@@ -319,8 +320,8 @@ void Graph::generateCliques(){
     vector<int> neighbors = getNeighbors(pc);
     while(neighbors.size()>0){
       //find the node with max fitness
-      double maxFitness = -1, maxKeyFitness = -1;
-      int keyNode = -1, node = -1;
+      double maxFitness = -1, maxKeyFitness = -1, maxNonFitness = -1;
+      int keyNode = -1, node = -1, nonNode = -1;
       for(vector<int>::iterator itNeighbor = neighbors.begin();
 	  itNeighbor != neighbors.end();
 	  itNeighbor++){
@@ -333,6 +334,9 @@ void Graph::generateCliques(){
 	  if(m_KeyArray.find(node) != m_KeyArray.end()){
 	    keyNode = node;
 	    maxKeyFitness = maxFitness;
+	  }else{
+	    nonNode = node;
+	    maxNonFitness = maxFitness;
 	  }
 	}
       }
@@ -343,16 +347,23 @@ void Graph::generateCliques(){
       
       //key protein first
       if(keyNode != -1 && maxKeyFitness > 0){
-	node = keyNode;
-      }else if(maxFitness < 0.005){
-	break;
+      	node = keyNode;
+      }else if(maxFitness < 0.015){
+      	break;
       }
+
+      // non-key protein first
+      /*if(nonNode != -1 && maxNonFitness > 0){
+      	node = nonNode;
+      }else if(maxFitness < 0.015){
+      	break;
+	}*/
       
       // ignore node that far away
-      if(!within(node, pc, 2)){
-	erase(neighbors, node);
-	continue;
-      }
+      //if(!within(node, pc, 4)){
+      // 	erase(neighbors, node);
+      //	continue;
+      //}
 
       pc->m_CliqueNodes.push_back(node);
 				
@@ -374,18 +385,26 @@ void Graph::generateCliques(){
       bool flag = true;
       for(vector<int>::iterator itNode = (*(*itNext)).m_CliqueNodes.begin();
 	  itNode != (*(*itNext)).m_CliqueNodes.end();
-	  itNode++){
-	if(!searchInClique(pc, *itNode)){
-	  flag = false;
-	  break;
+	  ){
+	if(searchInClique(pc, *itNode)){
+	  (*(*itNext)).m_CliqueNodes.erase(itNode);
+	  if((*(*itNext)).m_CliqueNodes.size() == 1){
+	    m_KeyCliqueArray.erase(itNext);
+	    flag = false;
+	  }
+	}else{
+	  itNode++;
 	}
       }
-
       if(flag){
+	itNext++;
+      }
+
+      /*if(flag){
 	m_KeyCliqueArray.erase(itNext);
       }else{
 	itNext++;
-      }
+	}*/
     }
 
   }//for
@@ -403,6 +422,26 @@ double Graph::calFitness(int node, vector<int> graph)	//node is included in grap
 	f2 = calModularity(temp);
 	return (f1-f2);
 }
+
+void Graph::keyFilterByModularity(double threshold){
+  for(vector<Clique*>::iterator itKeyClique = m_KeyCliqueArray.begin();
+      itKeyClique != m_KeyCliqueArray.end();)
+    {
+    double modularity = calModularity( (*(*itKeyClique)).m_CliqueNodes );
+    if(modularity < threshold){
+      m_KeyCliqueArray.erase(itKeyClique);
+    }else{
+      itKeyClique++;
+    }
+  }
+}
+
+
+void Graph::sortKeyBySize(){
+  sort(m_KeyCliqueArray.begin(), m_KeyCliqueArray.end());
+}
+
+
 
 double Graph::calModularity(vector<int> graph)
 {

@@ -1,0 +1,21 @@
+my $complexFilename = shift;
+my %clusteredNodes;
+open(my $complexFile, $complexFilename) or die $!;
+while(my $line = <$complexFile>){
+    next if($line =~ /Complex/);
+    
+    chomp($line);
+
+    $clusteredNodes{$line} = 1;
+}
+close $complexFile;
+
+open($netFile, "SC_net_noweight.txt") or die $!;
+while(my $line = <$netFile>){
+    chomp($line);
+    my ($proteinA, $proteinB) = split "\t",$line;
+    if(defined($clustered{$proteinA}) and defined($clustered{$proteinB})){
+	print $line, "\n";
+    }
+}
+close $complexFile;

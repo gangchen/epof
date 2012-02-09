@@ -33,9 +33,12 @@ int main(int argc, char* argv[])
 	graph.loadKeys("key.txt");
 	if(graph.loadKeyCliques(keyFile)<0)
 		return -1;
+	graph.keyFilterByModularity(0.04);
+	graph.sortKeyBySize();
 	//generate maximal cliques...
 	graph.generateCliques();
 	cout << "Generate Cliques Done" << endl;
+
 	//generate complexes...
 	//int cliThr = atoi(argv[2]);
 	int cliThr = 1;
