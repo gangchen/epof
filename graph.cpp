@@ -304,14 +304,14 @@ bool Graph::within(int node, Clique* cq, int dist=2){
   return true;
 }
 
-void Graph::generateCliques(){
+void Graph::generateCliques(int mode, double essFitnessThreshold, double nonFitnessThreshold){
 
-  cout << "OK" << endl;
+  int progress = 0;
   for(vector<Clique*>::iterator itClique = m_KeyCliqueArray.begin();
       itClique != m_KeyCliqueArray.end();
       itClique++){
 
-    cout << (*itClique)->getID() << endl;//for progress monitor
+    cout << progress++ << ":" << m_KeyCliqueArray.size() << endl;//for progress monitor
 
     Clique* keyClique = *itClique;
     Clique* pc=new Clique(m_CliqueArray.size());
@@ -346,27 +346,26 @@ void Graph::generateCliques(){
       }
       
       //key protein first
-      if(keyNode != -1 && maxKeyFitness > 0){
-      	node = keyNode;
-      }else if(maxFitness < 0.015){
-      	break;
+      if(mode == ESSFIRST){
+	if(keyNode != -1 && maxKeyFitness > essFitnessThreshold){
+	  node = keyNode;
+	}else if(maxFitness < nonFitnessThreshold){
+	  break;
+	}
+      }else if(mode == NONFIRST){
+	// non-key protein first
+	if(nonNode != -1 && maxNonFitness > nonFitnessThreshold){
+	  node = nonNode;
+	}else if(maxFitness < essFitnessThreshold){
+	  break;
+	}
+      }else{
+	cout << "mode parameter error!" << endl;
+	return;
       }
 
-      // non-key protein first
-      /*if(nonNode != -1 && maxNonFitness > 0){
-      	node = nonNode;
-      }else if(maxFitness < 0.015){
-      	break;
-	}*/
-      
-      // ignore node that far away
-      //if(!within(node, pc, 4)){
-      // 	erase(neighbors, node);
-      //	continue;
-      //}
 
       pc->m_CliqueNodes.push_back(node);
-				
       if(calFitness(node,pc->m_CliqueNodes)<0){
 	erase(pc->m_CliqueNodes,node);
 	erase(neighbors,node);
@@ -381,32 +380,26 @@ void Graph::generateCliques(){
     
 
     for(vector<Clique*>::iterator itNext = itClique + 1;
-	itNext != m_KeyCliqueArray.end();){
+	itNext != m_KeyCliqueArray.end();
+	){
+
       bool flag = true;
+
       for(vector<int>::iterator itNode = (*(*itNext)).m_CliqueNodes.begin();
 	  itNode != (*(*itNext)).m_CliqueNodes.end();
-	  ){
-	if(searchInClique(pc, *itNode)){
-	  (*(*itNext)).m_CliqueNodes.erase(itNode);
-	  if((*(*itNext)).m_CliqueNodes.size() == 1){
-	    m_KeyCliqueArray.erase(itNext);
-	    flag = false;
-	  }
-	}else{
-	  itNode++;
+	  itNode++){
+	if(!searchInClique(pc, *itNode)){
+	  flag = false;
+	  break;
 	}
-      }
-      if(flag){
-	itNext++;
-      }
+      }//for
 
-      /*if(flag){
+      if(flag){
 	m_KeyCliqueArray.erase(itNext);
       }else{
 	itNext++;
-	}*/
+      }
     }
-
   }//for
 }
 

@@ -15,8 +15,6 @@ int main(int argc, char* argv[])
 	}
 	//parameters used for clustering
 	strcpy(netFile,argv[1]);
-/*	cout<<"Input file name: ";
-	cin>>netFile;*/
 	strcpy(keyFile,argv[2]);
 	strcpy(compFile, netFile);
 	compFile[strlen(compFile)-4] = '\0';
@@ -36,7 +34,8 @@ int main(int argc, char* argv[])
 	graph.keyFilterByModularity(0.04);
 	graph.sortKeyBySize();
 	//generate maximal cliques...
-	graph.generateCliques();
+	graph.generateCliques(ESSFIRST, 0, 0.015);
+	//graph.generateCLiques(NONFIRST, 0, 0.015)
 	cout << "Generate Cliques Done" << endl;
 
 	//generate complexes...
@@ -44,7 +43,7 @@ int main(int argc, char* argv[])
 	int cliThr = 1;
 	graph.m_nCliThr = cliThr;
 	strcpy(graph.m_eagleOut,compFile);
-	graph.generateComplexes();/**/
+	graph.generateComplexes();
 
 	cout<<endl<<"Succeed!!!Congratulations!"<<endl<<endl;
 
