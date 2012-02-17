@@ -11,7 +11,7 @@ while(my $line = <$complexFile>){
 }
 close $complexFile;
 
-open(my $netFile, "SC_net_noweight.txt") or die $!;
+open(my $netFile, "weight.txt") or die $!;
 while(my $line = <$netFile>){
     chomp($line);
     my ($proteinA, $proteinB) = split "\t",$line;

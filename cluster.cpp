@@ -34,8 +34,8 @@ int main(int argc, char* argv[])
 	graph.keyFilterByModularity(0.04);
 	graph.sortKeyBySize();
 	//generate maximal cliques...
-	graph.generateCliques(ESSFIRST, 0, 0.015);
-	//graph.generateCLiques(NONFIRST, 0, 0.015)
+	//graph.generateCliques(ESSFIRST, 0, 0.015);
+	graph.generateCliques(NONFIRST, 0.015, 0);
 	cout << "Generate Cliques Done" << endl;
 
 	//generate complexes...

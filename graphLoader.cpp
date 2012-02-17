@@ -30,8 +30,9 @@ void GraphLoader::LoadGraphFromFile(const char * szFileName)
 	{
 		if(!InFile)
 			break;
-		InFile>>arc.m_szFrom>>arc.m_szTo;//>>arc.m_fWeight;
-		arc.m_fWeight = 1.0;
+		InFile>>arc.m_szFrom>>arc.m_szTo>>arc.m_fWeight;
+		if(!arc.m_fWeight)
+		  arc.m_fWeight = 1.0;
 		m_RawGraph.push_back(arc);
 		InFile.ignore(100,'\n');
 	}
