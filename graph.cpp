@@ -341,7 +341,7 @@ void Graph::generateCliques(int mode, double essFitnessThreshold, double nonFitn
 	}
       }
 
-      if(maxFitness < 0 ){
+      if(maxFitness <= 0 ){
 	break;
       }
       
@@ -373,6 +373,11 @@ void Graph::generateCliques(int mode, double essFitnessThreshold, double nonFitn
 	cin.get();
       }else{
 	neighbors = getNeighbors(pc);
+      }
+      
+      // avoid too big complex
+      if(pc->m_CliqueNodes.size() >= 200){
+	break;
       }
     }//while
     pc->m_iNumNodes = pc->m_CliqueNodes.size();
