@@ -31,10 +31,11 @@ int main(int argc, char* argv[])
 	//graph.loadKeys("key1.txt");
 	if(graph.loadKeyCliques(keyFile)<0)
 		return -1;
-	graph.keyFilterByModularity(0.04);
+	//graph.keyFilterByModularity(0.04);
 	graph.sortKeyBySize();
 	//generate maximal cliques...
-	graph.generateCliques(ESSFIRST, 0, 0.015);
+	double expressionCorelationThreshold = 0.1;
+	graph.generateCliques(expressionCorelationThreshold);
 	//graph.generateCliques(NONFIRST, 0.00, 0.00);
 	cout << "Generate Cliques Done" << endl;
 

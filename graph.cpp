@@ -304,7 +304,7 @@ bool Graph::within(int node, Clique* cq, int dist=2){
   return true;
 }
 
-void Graph::generateCliques(int mode, double essFitnessThreshold, double nonFitnessThreshold){
+void Graph::generateCliques(double expressionCorelationThreshold){
 
   int progress = 0;
   for(vector<Clique*>::iterator itClique = m_KeyCliqueArray.begin();
@@ -320,8 +320,8 @@ void Graph::generateCliques(int mode, double essFitnessThreshold, double nonFitn
     vector<int> neighbors = getNeighbors(pc);
     while(neighbors.size()>0){
       //find the node with max fitness
-      double maxFitness = -1, maxKeyFitness = -1, maxNonFitness = -1;
-      int keyNode = -1, node = -1, nonNode = -1;
+      double maxFitness = -1;
+      int node = -1;
       for(vector<int>::iterator itNeighbor = neighbors.begin();
 	  itNeighbor != neighbors.end();
 	  itNeighbor++){
@@ -331,37 +331,11 @@ void Graph::generateCliques(int mode, double essFitnessThreshold, double nonFitn
 	if(curFitness > maxFitness){
 	  node = *itNeighbor;
 	  maxFitness = curFitness;
-	  if(m_KeyArray.find(node) != m_KeyArray.end()){
-	    keyNode = node;
-	    maxKeyFitness = maxFitness;
-	  }else{
-	    nonNode = node;
-	    maxNonFitness = maxFitness;
-	  }
 	}
       }
 
       if(maxFitness <= 0 ){
 	break;
-      }
-      
-      //key protein first
-      if(mode == ESSFIRST){
-	if(keyNode != -1 && maxKeyFitness > essFitnessThreshold){
-	  node = keyNode;
-	}else if(maxFitness < nonFitnessThreshold){
-	  break;
-	}
-      }else if(mode == NONFIRST){
-	// non-key protein first
-	if(nonNode != -1 && maxNonFitness > nonFitnessThreshold){
-	  node = nonNode;
-	}else if(maxFitness < essFitnessThreshold){
-	  break;
-	}
-      }else{
-	cout << "mode parameter error!" << endl;
-	return;
       }
 
 

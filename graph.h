@@ -17,9 +17,6 @@
 #include <set>
 using namespace std;
 
-#define ESSFIRST 1
-#define NONFIRST 2
-
 
 class Complex;
 class Arc
@@ -172,7 +169,7 @@ public:
 	int loadKeyCliques(const char* szfileName);
 	int locateNode(char m_szName[16]);
 	//fuctions to generate cliques
-	void generateCliques(int mode, double essFitnessThreshold, double nonFitnessThreshold);
+	void generateCliques(double expressionCorelationThreshold);
 	vector<int> getNeighbors(int node);
 	vector<int> getNeighbors(Clique* pc);
 	bool searchInClique(Clique* pc, int id);
